@@ -1,0 +1,86 @@
+{% extends "locate_me/head.html"%}
+
+{% block content %}
+
+<form name="mappos">
+	Enter a place (Only one search allowed per day):
+	<input type="text" name="add">
+</form>
+<button name="newcoord" onclick="getCoord()">Search</button>
+<div id="maphere" style="width: 500px;height: 500px"></div>
+<div id="errch"></div>
+<div id="erch"></div>
+
+
+<script type="text/javascript">
+
+	var map;
+	var marker;
+
+	function mymap(){
+		if(navigator.geolocation)
+		{
+			navigator.geolocation.getCurrentPosition(setloc);
+		}
+		
+	}
+
+	function getCoord(){
+		var address = document.forms["mappos"]["add"].value;
+		var addr = address.replace(/ /g,"+");
+		
+		var url = "//maps.googleapis.com/maps/api/geocode/json?address="+addr+"&key=AIzaSyCrKe5rl1A5TG96a5XOE9bsbsXokfO1rvI";
+
+		document.getElementById("errch").innerHTML=url;
+
+		var xmlhttp = new XMLHttpRequest();
+
+		xmlhttp.onreadystatechange = function() {
+  			if (this.readyState == 4 && this.status == 200) {
+    		var myres = JSON.parse(this.responseText);
+    		console.log(myres);
+ 			var lt = myres.results[0].geometry.location.lat;
+ 			var lg = myres.results[0].geometry.location.lng;
+ 			changeloc(lt,lg);
+
+  			}
+		};
+
+		xmlhttp.open("GET", url, true);
+		xmlhttp.send();
+
+	}
+	function setloc(pos){
+
+		var lt = pos.coords.latitude;
+		var lg = pos.coords.longitude;
+		var LtLg = new google.maps.LatLng(lt,lg);
+
+		var maploc= {center:LtLg, zoom:5};
+		map = new google.maps.Map(document.getElementById("maphere"),maploc);
+
+		marker = new google.maps.Marker({
+			position:LtLg,
+			map:map,
+		});
+
+		marker.setMap(map);
+	}
+
+	function changeloc(lt,lg){
+		
+		var LtLg = new google.maps.LatLng(lt,lg);
+
+		marker.setPosition(LtLg);
+		//document.getElementById("errch").innerHTML="lat:"+LtLg.lat()+" lng:"+LtLg.lng();
+		
+		map.setCenter(LtLg);
+	}
+	
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCrKe5rl1A5TG96a5XOE9bsbsXokfO1rvI&callback=mymap"></script>
+
+
+
+{% endblock %}
